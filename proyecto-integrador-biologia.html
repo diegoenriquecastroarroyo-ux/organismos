@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>De la célula a la especie — Proyecto integrador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0A1420;
+    --bg-panel:#0F2131;
+    --bg-panel-2:#122841;
+    --line:#233549;
+    --text:#E9F1F6;
+    --muted:#7E97AC;
+    --cyan:#5EEAD4;
+    --magenta:#F472B6;
+    --amber:#FBBF24;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg-deep);
+    color:var(--text);
+    font-family:"Source Serif 4", serif;
+    line-height:1.65;
+    font-size:17px;
+  }
+  h1,h2,h3{font-family:"Fraunces", serif; font-weight:600; margin:0 0 .3em 0; letter-spacing:-.01em;}
+  .mono{font-family:"IBM Plex Mono", monospace; letter-spacing:.02em;}
+  .eyebrow{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.72rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--cyan);
+    display:flex;
+    align-items:center;
+    gap:.6em;
+    margin-bottom:.9em;
+  }
+  .eyebrow::before{content:"";width:22px;height:1px;background:var(--cyan);display:inline-block;}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 28px;}
+  .prose{max-width:680px;}
+  .muted{color:var(--muted);}
+  a{color:var(--cyan);}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    min-height:92vh;
+    display:flex;
+    align-items:center;
+    position:relative;
+    overflow:hidden;
+    border-bottom:1px solid var(--line);
+  }
+  .hero-bg{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(94,234,212,.10), transparent 45%),
+      radial-gradient(ellipse at 85% 70%, rgba(244,114,182,.10), transparent 45%);
+    pointer-events:none;
+  }
+  .hero-grid{
+    display:grid; grid-template-columns:1.15fr .85fr; gap:60px; align-items:center; width:100%;
+  }
+  .hero h1{font-size:clamp(2.1rem,4.4vw,3.4rem); line-height:1.05;}
+  .hero .tag{color:var(--muted); max-width:46ch; margin-top:.9em;}
+  .meta-line{
+    margin-top:2.2em; padding-top:1.4em; border-top:1px solid var(--line);
+    display:flex; gap:2.4em; flex-wrap:wrap;
+  }
+  .meta-line div{font-family:"IBM Plex Mono",monospace; font-size:.74rem; color:var(--muted);}
+  .meta-line strong{display:block; color:var(--text); font-size:.9rem; margin-top:.2em;}
+  .fill-in{color:var(--amber);}
+
+  /* ---------- DNA 3D ---------- */
+  .helix-stage{
+    height:420px; display:flex; align-items:center; justify-content:center;
+    perspective:900px;
+  }
+  .helix{
+    position:relative; width:120px; height:340px;
+    transform-style:preserve-3d;
+    animation:spin 9s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotateY(360deg);} }
+  .rung{
+    position:absolute; left:50%; top:50%;
+    width:100px; height:4px; margin-left:-50px;
+    transform-style:preserve-3d;
+  }
+  .rung::before, .rung::after{
+    content:""; position:absolute; width:10px; height:10px; border-radius:50%; top:-3px;
+  }
+  .rung::before{ left:-5px; background:var(--cyan); box-shadow:0 0 8px var(--cyan);}
+  .rung::after{ right:-5px; background:var(--magenta); box-shadow:0 0 8px var(--magenta);}
+  .rung i{
+    position:absolute; left:0; top:1.5px; width:100%; height:1px;
+    background:linear-gradient(90deg,var(--cyan),var(--magenta));
+    opacity:.55;
+  }
+
+  /* ---------- SECTIONS ---------- */
+  section{ padding:96px 0; border-bottom:1px solid var(--line); }
+  section.alt{ background:var(--bg-panel); }
+  .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center; }
+  .panel{
+    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:10px;
+    padding:26px; display:flex; align-items:center; justify-content:center; min-height:340px;
+  }
+  svg{ max-width:100%; height:auto; display:block; }
+
+  /* ---------- ZOOM / SCALE INTERACTIVE ---------- */
+  .zoom-box{
+    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:10px; overflow:hidden;
+  }
+  .zoom-stage{
+    position:relative; height:300px; display:flex; align-items:center; justify-content:center;
+  }
+  .zoom-layer{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    opacity:0; transition:opacity .5s ease; padding:20px;
+  }
+  .zoom-layer.active{ opacity:1; }
+  .zoom-controls{ padding:22px 26px 28px; border-top:1px solid var(--line); }
+  .scale-readout{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;}
+  .scale-readout .label{ font-family:"Fraunces",serif; font-size:1.3rem; }
+  .scale-readout .power{ font-family:"IBM Plex Mono",monospace; color:var(--amber); font-size:.85rem;}
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:2px; background:var(--line); border-radius:2px; outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+    background:var(--cyan); box-shadow:0 0 10px var(--cyan); cursor:pointer; margin-top:-7px;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:16px; height:16px; border-radius:50%; background:var(--cyan); border:none; box-shadow:0 0 10px var(--cyan); cursor:pointer;
+  }
+  .desc{ margin-top:14px; color:var(--muted); font-size:.95rem; min-height:3.2em;}
+
+  /* ---------- PUNNETT ---------- */
+  .cross-buttons{ display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;}
+  .cross-buttons button{
+    font-family:"IBM Plex Mono",monospace; font-size:.78rem; letter-spacing:.03em;
+    background:transparent; border:1px solid var(--line); color:var(--muted);
+    padding:9px 14px; border-radius:6px; cursor:pointer; transition:.2s;
+  }
+  .cross-buttons button.active, .cross-buttons button:hover{
+    border-color:var(--cyan); color:var(--cyan);
+  }
+  table.punnett{ border-collapse:collapse; width:100%; max-width:320px; margin:0 auto;}
+  table.punnett th, table.punnett td{
+    border:1px solid var(--line); width:25%; text-align:center; padding:16px 4px;
+    font-family:"IBM Plex Mono",monospace; font-size:.95rem;
+  }
+  table.punnett th{ color:var(--amber); background:rgba(251,191,36,.06);}
+  .g-purple{ background:rgba(244,114,182,.16); color:#fff; }
+  .g-white{ background:rgba(126,151,172,.14); color:var(--text); }
+  .ratio{ margin-top:16px; font-family:"IBM Plex Mono",monospace; font-size:.85rem; color:var(--muted); text-align:center;}
+  .ratio b{ color:var(--text);}
+
+  /* ---------- EVOLUTION ---------- */
+  .moth-panel{ }
+  .moth-bar{ display:flex; height:34px; border-radius:6px; overflow:hidden; border:1px solid var(--line); }
+  .moth-bar .light{ background:#C9D3DB; transition:width .6s ease; }
+  .moth-bar .dark{ background:#2A2E33; transition:width .6s ease; }
+  .moth-legend{ display:flex; gap:22px; margin-top:12px; font-family:"IBM Plex Mono",monospace; font-size:.78rem; color:var(--muted);}
+  .moth-legend span{ display:inline-flex; align-items:center; gap:6px;}
+  .swatch{ width:10px; height:10px; border-radius:2px; display:inline-block;}
+  .gen-controls{ display:flex; align-items:center; gap:16px; margin-top:22px;}
+  .gen-controls button{
+    font-family:"IBM Plex Mono",monospace; background:var(--cyan); color:#052422; border:none;
+    padding:10px 16px; border-radius:6px; cursor:pointer; font-size:.8rem; font-weight:600;
+  }
+  .gen-controls button:disabled{ opacity:.35; cursor:default;}
+  .gen-label{ font-family:"IBM Plex Mono",monospace; font-size:.8rem; color:var(--amber);}
+  .gen-caption{ margin-top:14px; color:var(--muted); font-size:.92rem; min-height:3em;}
+
+  /* ---------- CONCLUSION ---------- */
+  .conclusion{
+    background:linear-gradient(180deg, var(--bg-panel), var(--bg-deep));
+  }
+  blockquote{
+    margin:0; padding:0 0 0 22px; border-left:2px solid var(--magenta);
+    font-family:"Fraunces",serif; font-style:italic; font-size:1.2rem; color:var(--text);
+  }
+
+  footer{ padding:50px 0 80px; }
+  footer .wrap{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px; }
+  footer .mono{ color:var(--muted); font-size:.78rem;}
+
+  @media (max-width:860px){
+    .hero-grid{ grid-template-columns:1fr; }
+    .two-col{ grid-template-columns:1fr; }
+    .helix-stage{ height:300px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .helix{ animation:none; }
+    .zoom-layer{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ======================= HERO ======================= -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">Proyecto integrador · Biología</div>
+      <h1>De la célula<br>a la especie</h1>
+      <p class="tag">Un recorrido, en distintas escalas, por la organización biológica, la estructura celular, el ADN, los genes, la herencia y la evolución — y por cómo cada nivel explica al siguiente.</p>
+      <div class="meta-line mono">
+        <div>Alumno(a)<strong class="fill-in">[Escribe tu nombre aquí]</strong></div>
+        <div>Grupo<strong class="fill-in">[Grupo]</strong></div>
+        <div>Asignatura<strong>Biología</strong></div>
+        <div>Actividad<strong>10 — Proyecto integrador</strong></div>
+      </div>
+    </div>
+    <div class="helix-stage">
+      <div class="helix" id="helix"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================= 1. ESCALA / ORGANIZACIÓN ======================= -->
+<section id="organizacion">
+  <div class="wrap">
+    <div class="eyebrow">Escala 10⁰ m → 10⁻⁹ m</div>
+    <h2>Organización biológica: seis paradas en un mismo viaje</h2>
+    <p class="prose muted">La vida se estudia en niveles, cada uno construido a partir del anterior: átomos y moléculas forman organelos; los organelos forman células; las células se agrupan en tejidos, órganos y sistemas; los sistemas forman un organismo; los organismos de la misma especie forman una población, y las poblaciones que interactúan forman comunidades y ecosistemas. Ningún nivel se entiende aislado del resto: la célula solo existe porque sus moléculas están organizadas de cierta forma, y una especie solo evoluciona porque las células de sus individuos heredan y transmiten información. Mueve el control para "acercar el microscopio" de un organismo completo hasta el gen que lo hace posible.</p>
+
+    <div class="zoom-box">
+      <div class="zoom-stage">
+
+        <!-- nivel 0: organismo (planta de chícharo) -->
+        <div class="zoom-layer active" data-level="0">
+          <svg viewBox="0 0 220 220" width="220">
+            <ellipse cx="110" cy="205" rx="60" ry="8" fill="#233549"/>
+            <path d="M110 200 C104 150 116 110 108 60" stroke="#5EEAD4" stroke-width="4" fill="none"/>
+            <path d="M108 150 C80 145 65 125 60 105 C85 108 102 122 108 150 Z" fill="#3FA98C"/>
+            <path d="M110 120 C138 112 152 92 155 72 C130 78 114 92 110 120 Z" fill="#5EEAD4" opacity=".8"/>
+            <path d="M108 90 C82 82 68 62 64 42 C88 46 104 62 108 90 Z" fill="#3FA98C"/>
+            <circle cx="108" cy="55" r="14" fill="#F472B6"/>
+            <circle cx="95" cy="45" r="9" fill="#F9A8D4"/>
+            <circle cx="122" cy="45" r="9" fill="#F9A8D4"/>
+            <circle cx="108" cy="35" r="9" fill="#F9A8D4"/>
+          </svg>
+        </div>
+
+        <!-- nivel 1: tejido -->
+        <div class="zoom-layer" data-level="1">
+          <svg viewBox="0 0 220 180" width="220">
+            <g stroke="#233549" stroke-width="2">
+              <circle cx="40" cy="40" r="26" fill="#122841"/>
+              <circle cx="95" cy="40" r="26" fill="#0F2131"/>
+              <circle cx="150" cy="40" r="26" fill="#122841"/>
+              <circle cx="40" cy="95" r="26" fill="#0F2131"/>
+              <circle cx="95" cy="95" r="26" fill="#122841"/>
+              <circle cx="150" cy="95" r="26" fill="#0F2131"/>
+              <circle cx="40" cy="150" r="26" fill="#122841"/>
+              <circle cx="95" cy="150" r="26" fill="#0F2131"/>
+              <circle cx="150" cy="150" r="26" fill="#122841"/>
+            </g>
+            <g fill="#5EEAD4">
+              <circle cx="40" cy="40" r="6"/><circle cx="95" cy="40" r="6"/><circle cx="150" cy="40" r="6"/>
+              <circle cx="40" cy="95" r="6"/><circle cx="95" cy="95" r="6"/><circle cx="150" cy="95" r="6"/>
+              <circle cx="40" cy="150" r="6"/><circle cx="95" cy="150" r="6"/><circle cx="150" cy="150" r="6"/>
+            </g>
+          </svg>
+        </div>
+
+        <!-- nivel 2: célula -->
+        <div class="zoom-layer" data-level="2">
+          <svg viewBox="0 0 240 220" width="240">
+            <ellipse cx="120" cy="110" rx="105" ry="92" fill="#0F2131" stroke="#5EEAD4" stroke-width="2.5"/>
+            <ellipse cx="105" cy="100" rx="42" ry="36" fill="#233549" stroke="#F472B6" stroke-width="2"/>
+            <ellipse cx="105" cy="100" rx="16" ry="13" fill="#F472B6" opacity=".7"/>
+            <ellipse cx="170" cy="70" rx="16" ry="8" fill="#3FA98C" transform="rotate(20 170 70)"/>
+            <ellipse cx="180" cy="140" rx="16" ry="8" fill="#3FA98C" transform="rotate(-15 180 140)"/>
+            <circle cx="70" cy="150" r="5" fill="#FBBF24"/>
+            <circle cx="150" cy="45" r="5" fill="#FBBF24"/>
+            <circle cx="185" cy="100" r="5" fill="#FBBF24"/>
+          </svg>
+        </div>
+
+        <!-- nivel 3: núcleo / cromosoma -->
+        <div class="zoom-layer" data-level="3">
+          <svg viewBox="0 0 220 220" width="200">
+            <circle cx="110" cy="110" r="95" fill="#122841" stroke="#233549" stroke-width="2"/>
+            <path d="M90 60 C100 90 100 90 90 120 C80 150 80 150 90 180" stroke="#F472B6" stroke-width="10" fill="none" stroke-linecap="round"/>
+            <path d="M130 60 C120 90 120 90 130 120 C140 150 140 150 130 180" stroke="#F472B6" stroke-width="10" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <!-- nivel 4: ADN -->
+        <div class="zoom-layer" data-level="4">
+          <svg viewBox="0 0 200 220" width="180">
+            <path d="M60 10 C100 45 100 55 60 90 C20 125 20 135 60 170 C100 195 100 205 60 210" stroke="#5EEAD4" stroke-width="4" fill="none"/>
+            <path d="M140 10 C100 45 100 55 140 90 C180 125 180 135 140 170 C100 195 100 205 140 210" stroke="#F472B6" stroke-width="4" fill="none"/>
+            <g stroke="#7E97AC" stroke-width="3">
+              <line x1="60" y1="30" x2="140" y2="30"/>
+              <line x1="72" y1="60" x2="128" y2="60"/>
+              <line x1="60" y1="90" x2="140" y2="90"/>
+              <line x1="45" y1="120" x2="155" y2="120"/>
+              <line x1="60" y1="150" x2="140" y2="150"/>
+              <line x1="72" y1="180" x2="128" y2="180"/>
+            </g>
+          </svg>
+        </div>
+
+        <!-- nivel 5: gen -->
+        <div class="zoom-layer" data-level="5">
+          <svg viewBox="0 0 240 140" width="240">
+            <line x1="10" y1="40" x2="230" y2="40" stroke="#7E97AC" stroke-width="3"/>
+            <line x1="10" y1="60" x2="230" y2="60" stroke="#7E97AC" stroke-width="3"/>
+            <rect x="80" y="30" width="80" height="40" rx="6" fill="rgba(251,191,36,.18)" stroke="#FBBF24" stroke-width="2"/>
+            <text x="120" y="95" text-anchor="middle" fill="#FBBF24" font-family="IBM Plex Mono, monospace" font-size="13">GEN</text>
+            <text x="120" y="112" text-anchor="middle" fill="#7E97AC" font-family="IBM Plex Mono, monospace" font-size="10">color de la flor</text>
+          </svg>
+        </div>
+
+      </div>
+
+      <div class="zoom-controls">
+        <div class="scale-readout">
+          <div class="label" id="zoomLabel">Organismo</div>
+          <div class="power" id="zoomPower">≈ 10⁰ m</div>
+        </div>
+        <input type="range" id="zoomSlider" min="0" max="5" value="0" step="1">
+        <div class="desc" id="zoomDesc"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 2. ESTRUCTURA CELULAR ======================= -->
+<section class="alt" id="celula">
+  <div class="wrap two-col">
+    <div>
+      <div class="eyebrow">Unidad estructural y funcional</div>
+      <h2>Estructura celular</h2>
+      <p>Toda célula —procariota o eucariota— está delimitada por una <b>membrana plasmática</b> que regula lo que entra y sale, y contiene <b>citoplasma</b>, el medio donde ocurren la mayoría de las reacciones químicas. En las células eucariotas, como las de una planta o un animal, el material genético está encerrado en un <b>núcleo</b>; ahí también viven organelos especializados: las <b>mitocondrias</b> liberan energía a partir de nutrientes, los <b>ribosomas</b> fabrican proteínas, el <b>retículo endoplásmico</b> y el <b>aparato de Golgi</b> procesan y transportan esas proteínas. La célula es, en pocas palabras, la unidad más pequeña que todavía puede considerarse "viva": es el lugar físico donde vive el ADN y donde se ejecutan las instrucciones que contiene.</p>
+    </div>
+    <div class="panel">
+      <svg viewBox="0 0 320 260" width="100%">
+        <ellipse cx="160" cy="130" rx="145" ry="115" fill="#0F2131" stroke="#5EEAD4" stroke-width="2.5"/>
+        <text x="160" y="30" text-anchor="middle" fill="#7E97AC" font-family="IBM Plex Mono" font-size="11">MEMBRANA PLASMÁTICA</text>
+
+        <ellipse cx="130" cy="130" rx="55" ry="46" fill="#233549" stroke="#F472B6" stroke-width="2"/>
+        <ellipse cx="130" cy="130" rx="20" ry="16" fill="#F472B6" opacity=".7"/>
+        <text x="130" y="185" text-anchor="middle" fill="#F472B6" font-family="IBM Plex Mono" font-size="10">NÚCLEO</text>
+
+        <ellipse cx="235" cy="90" rx="22" ry="11" fill="#3FA98C" transform="rotate(25 235 90)"/>
+        <text x="255" y="70" fill="#3FA98C" font-family="IBM Plex Mono" font-size="9">MITOCONDRIA</text>
+
+        <ellipse cx="240" cy="175" rx="22" ry="11" fill="#3FA98C" transform="rotate(-20 240 175)"/>
+
+        <path d="M70 190 q30 -10 55 5" stroke="#FBBF24" stroke-width="3" fill="none"/>
+        <text x="60" y="215" fill="#FBBF24" font-family="IBM Plex Mono" font-size="9">RETÍCULO ENDOPLÁSMICO</text>
+
+        <circle cx="95" cy="60" r="3" fill="#5EEAD4"/>
+        <circle cx="105" cy="70" r="3" fill="#5EEAD4"/>
+        <circle cx="200" cy="200" r="3" fill="#5EEAD4"/>
+        <text x="60" y="45" fill="#5EEAD4" font-family="IBM Plex Mono" font-size="9">RIBOSOMAS</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 3. ADN ======================= -->
+<section id="adn">
+  <div class="wrap two-col">
+    <div class="panel" style="order:2;">
+      <svg viewBox="0 0 240 260" width="70%">
+        <path d="M70 10 C120 55 120 65 70 110 C20 155 20 165 70 210 C120 245 120 255 70 260" stroke="#5EEAD4" stroke-width="5" fill="none"/>
+        <path d="M170 10 C120 55 120 65 170 110 C220 155 220 165 170 210 C120 245 120 255 170 260" stroke="#F472B6" stroke-width="5" fill="none"/>
+        <g stroke="#7E97AC" stroke-width="3.5">
+          <line x1="70" y1="35" x2="170" y2="35"/>
+          <line x1="90" y1="70" x2="150" y2="70"/>
+          <line x1="70" y1="110" x2="170" y2="110"/>
+          <line x1="45" y1="150" x2="195" y2="150"/>
+          <line x1="70" y1="185" x2="170" y2="185"/>
+          <line x1="90" y1="220" x2="150" y2="220"/>
+        </g>
+        <text x="70" y="65" fill="#5EEAD4" font-family="IBM Plex Mono" font-size="10">A</text>
+        <text x="160" y="65" fill="#F472B6" font-family="IBM Plex Mono" font-size="10">T</text>
+        <text x="70" y="145" fill="#5EEAD4" font-family="IBM Plex Mono" font-size="10">C</text>
+        <text x="160" y="145" fill="#F472B6" font-family="IBM Plex Mono" font-size="10">G</text>
+      </svg>
+    </div>
+    <div style="order:1;">
+      <div class="eyebrow">Escala 10⁻⁹ m</div>
+      <h2>ADN: la molécula de la información</h2>
+      <p>El ácido desoxirribonucleico (ADN) es una molécula en forma de <b>doble hélice</b>, formada por unidades llamadas <b>nucleótidos</b>. Cada nucleótido lleva una de cuatro bases nitrogenadas —adenina (A), timina (T), citosina (C) y guanina (G)— y estas se emparejan siempre igual: A con T, C con G. Ese emparejamiento tan preciso es lo que permite copiar la información con fidelidad cada vez que una célula se divide. En los eucariotas, el ADN se enrolla junto con proteínas y se empaqueta dentro del núcleo en forma de <b>cromosomas</b>. Si la célula es el lugar donde vive la información, el ADN es literalmente esa información, escrita con un alfabeto de cuatro letras.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 4. GENES ======================= -->
+<section class="alt" id="genes">
+  <div class="wrap two-col">
+    <div>
+      <div class="eyebrow">La unidad de la herencia</div>
+      <h2>Genes</h2>
+      <p>Un <b>gen</b> es un segmento específico de ADN que contiene la instrucción para producir una proteína o para determinar una característica, como el color de una flor o el tipo de sangre. Un mismo gen puede tener versiones distintas llamadas <b>alelos</b> —por ejemplo, el alelo para flor púrpura y el alelo para flor blanca—; la combinación de alelos que posee un organismo es su <b>genotipo</b>, y la característica observable que resulta de esa combinación es su <b>fenotipo</b>. Los genes están ordenados a lo largo del cromosoma, uno junto a otro, como palabras dentro de una misma oración escrita en ADN. Son, además, la pieza que conecta a la célula individual con la herencia: son ellos los que se copian y se transmiten de una generación a la siguiente.</p>
+    </div>
+    <div class="panel">
+      <svg viewBox="0 0 280 150" width="100%">
+        <line x1="15" y1="55" x2="265" y2="55" stroke="#7E97AC" stroke-width="3"/>
+        <line x1="15" y1="80" x2="265" y2="80" stroke="#7E97AC" stroke-width="3"/>
+        <rect x="55" y="45" width="50" height="45" rx="6" fill="rgba(94,234,212,.16)" stroke="#5EEAD4" stroke-width="2"/>
+        <rect x="140" y="45" width="60" height="45" rx="6" fill="rgba(244,114,182,.16)" stroke="#F472B6" stroke-width="2"/>
+        <text x="80" y="70" text-anchor="middle" fill="#5EEAD4" font-family="IBM Plex Mono" font-size="9">GEN A</text>
+        <text x="170" y="70" text-anchor="middle" fill="#F472B6" font-family="IBM Plex Mono" font-size="9">GEN B</text>
+        <text x="80" y="115" text-anchor="middle" fill="#7E97AC" font-family="IBM Plex Mono" font-size="9">color de flor</text>
+        <text x="170" y="115" text-anchor="middle" fill="#7E97AC" font-family="IBM Plex Mono" font-size="9">forma de semilla</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 5. HERENCIA ======================= -->
+<section id="herencia">
+  <div class="wrap">
+    <div class="eyebrow">De padres a hijos</div>
+    <h2>Herencia: cómo viajan los genes entre generaciones</h2>
+    <p class="prose muted">Gregor Mendel descubrió, cruzando plantas de chícharo, que las características se heredan en unidades discretas (los genes) y que algunos alelos son <b>dominantes</b> —se expresan aunque solo haya una copia— y otros son <b>recesivos</b> —solo se expresan si están las dos copias—. Un <b>cuadro de Punnett</b> permite predecir, para una cruza dada, qué proporción de la descendencia mostrará cada fenotipo. Elige una cruza para ver el resultado:</p>
+
+    <div class="two-col" style="align-items:start; margin-top:36px;">
+      <div>
+        <div class="cross-buttons">
+          <button class="active" data-cross="PpPp">Pp × Pp</button>
+          <button data-cross="Ppp">Pp × pp</button>
+        </div>
+        <table class="punnett" id="punnettTable"></table>
+        <p class="ratio" id="punnettRatio"></p>
+      </div>
+      <div>
+        <p class="muted" style="margin-top:0;">En chícharos, <b>P</b> (flor púrpura) es dominante sobre <b>p</b> (flor blanca). Cada progenitor aporta un alelo al azar; la combinación de los dos define el genotipo de cada descendiente y, con ello, su fenotipo. Así es como un rasgo puede "saltarse" una generación y reaparecer en la siguiente: el alelo recesivo no desaparece, simplemente queda oculto mientras viaja acompañado del dominante.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 6. EVOLUCIÓN ======================= -->
+<section class="alt" id="evolucion">
+  <div class="wrap">
+    <div class="eyebrow">Cambio a través del tiempo</div>
+    <h2>Evolución: la herencia puesta a prueba por el ambiente</h2>
+    <p class="prose muted">La evolución es el cambio, generación tras generación, en las características de una <b>población</b> (no de un solo individuo). Su materia prima es la variación genética que ya existe gracias a los distintos alelos; el mecanismo que la dirige, en muchos casos, es la <b>selección natural</b>: los individuos cuyas características les dan ventaja para sobrevivir y reproducirse dejan más descendencia, y por lo tanto transmiten más copias de esos alelos a la siguiente generación. Con el tiempo, esto desplaza las proporciones de alelos en toda la población. El ejemplo clásico es la polilla moteada (<i>Biston betularia</i>) durante la revolución industrial en Inglaterra: simula tú mismo, generación por generación, cómo cambia una población cuando el ambiente cambia.</p>
+
+    <div class="panel moth-panel" style="margin-top:30px; flex-direction:column; align-items:stretch;">
+      <div class="moth-bar">
+        <div class="light" id="mothLight" style="width:98%;"></div>
+        <div class="dark" id="mothDark" style="width:2%;"></div>
+      </div>
+      <div class="moth-legend">
+        <span><i class="swatch" style="background:#C9D3DB;"></i>polillas claras</span>
+        <span><i class="swatch" style="background:#2A2E33;"></i>polillas oscuras</span>
+      </div>
+      <div class="gen-controls">
+        <button id="mothBtn">Avanzar generación →</button>
+        <span class="gen-label" id="mothGenLabel">Generación 0 · antes de la industrialización</span>
+      </div>
+      <p class="gen-caption" id="mothCaption">Los troncos de los árboles están cubiertos de líquenes claros: las polillas claras se camuflan mejor y los pájaros depredan sobre todo a las oscuras.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= RELACIÓN INTEGRADA ======================= -->
+<section id="relacion">
+  <div class="wrap">
+    <div class="eyebrow">El hilo que une todo</div>
+    <h2>Cómo se conecta todo esto</h2>
+    <p class="prose">La organización biológica describe el escenario: átomos y moléculas construyen organelos; los organelos construyen la célula; las células construyen tejidos, órganos, sistemas y organismos; los organismos forman poblaciones. Dentro de cada célula vive el ADN, empaquetado en cromosomas, y dentro del ADN están escritos los genes. Los genes son la unidad que se hereda: gracias a las reglas descubiertas por Mendel, viajan de una generación a la siguiente combinándose de formas predecibles. Esa combinación produce variación entre los individuos de una población, y es precisamente sobre esa variación heredable —no sobre el organismo individual— donde actúa la selección natural. El resultado, acumulado durante muchas generaciones, es la evolución: el cambio en las poblaciones que, con el tiempo suficiente, da origen a la enorme diversidad de organismos que puebla los niveles superiores de organización biológica. El círculo se cierra: la evolución de hoy es, en el fondo, herencia acumulada de ayer.</p>
+  </div>
+</section>
+
+<!-- ======================= CONCLUSIÓN ======================= -->
+<section class="conclusion" id="conclusion">
+  <div class="wrap prose">
+    <div class="eyebrow">Conclusión personal</div>
+    <h2>Por qué me importa esto</h2>
+    <blockquote>
+      Entender la herencia y la evolución no es solo memorizar a Mendel o a Darwin: es entender por qué me parezco a mis padres, por qué existen enfermedades genéticas, por qué las bacterias se vuelven resistentes a los antibióticos y por qué la biodiversidad que vemos hoy no es fija, sino el resultado de un proceso larguísimo de ensayo y error.
+    </blockquote>
+    <p style="margin-top:22px;">Hacer este proyecto me ayudó a ver que la biología no es una lista de temas separados, sino una sola historia contada a distintas escalas: lo que ocurre en una molécula de ADN dentro del núcleo de una sola célula termina explicando, generaciones después, por qué una especie sobrevive o desaparece. Creo que valorar esto importa porque nos afecta directamente hoy: de la genética depende el diagnóstico y tratamiento de enfermedades hereditarias, de la evolución depende que entendamos —y podamos anticipar— fenómenos como la resistencia a antibióticos o los efectos del cambio climático sobre las especies. <span class="fill-in">[Aquí puedes añadir tu propia reflexión: por ejemplo, algo de tu familia, algún animal o planta que te interese, o alguna noticia sobre genética que hayas visto.]</span></p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="mono">Proyecto integrador — Actividad 10 · Organización biológica, célula, ADN, genes, herencia y evolución.</div>
+    <div class="mono">Hecho con HTML, CSS y JavaScript.</div>
+  </div>
+</footer>
+
+<script>
+  // --- DNA helix build ---
+  const helix = document.getElementById('helix');
+  const N = 10;
+  for(let i=0;i<N;i++){
+    const rung = document.createElement('div');
+    rung.className = 'rung';
+    rung.style.transform = `translateY(${(i/(N-1))*320-160}px) rotateY(${i*36}deg) translateZ(0)`;
+    rung.innerHTML = '<i></i>';
+    helix.appendChild(rung);
+  }
+
+  // --- Zoom slider ---
+  const zoomData = [
+    { label:"Organismo", power:"≈ 10⁰ m", desc:"Una planta completa de chícharo: el nivel donde observamos rasgos como el color de la flor." },
+    { label:"Tejido", power:"≈ 10⁻³ m", desc:"Muchas células iguales trabajando juntas, por ejemplo el tejido de un pétalo." },
+    { label:"Célula", power:"≈ 10⁻⁵ m", desc:"La unidad estructural y funcional de la vida: membrana, citoplasma, núcleo y organelos." },
+    { label:"Núcleo y cromosomas", power:"≈ 10⁻⁶ m", desc:"Dentro del núcleo, el ADN se empaqueta junto con proteínas formando cromosomas." },
+    { label:"ADN", power:"≈ 10⁻⁹ m", desc:"La doble hélice: la molécula que guarda la información hereditaria." },
+    { label:"Gen", power:"≈ 10⁻⁹ m (un tramo)", desc:"Un segmento de ADN con la instrucción para un rasgo concreto, como el color de la flor." },
+  ];
+  const zoomSlider = document.getElementById('zoomSlider');
+  const zoomLabel = document.getElementById('zoomLabel');
+  const zoomPower = document.getElementById('zoomPower');
+  const zoomDesc = document.getElementById('zoomDesc');
+  const layers = document.querySelectorAll('.zoom-layer');
+  function setZoom(v){
+    layers.forEach(l => l.classList.toggle('active', l.dataset.level === String(v)));
+    zoomLabel.textContent = zoomData[v].label;
+    zoomPower.textContent = zoomData[v].power;
+    zoomDesc.textContent = zoomData[v].desc;
+  }
+  zoomSlider.addEventListener('input', e => setZoom(e.target.value));
+  setZoom(0);
+
+  // --- Punnett square ---
+  const crosses = {
+    PpPp: {
+      cols:['P','p'], rows:['P','p'],
+      cells:[['PP','Pp'],['Pp','pp']],
+      ratioText:'3 púrpura : 1 blanca (genotipos 1 PP : 2 Pp : 1 pp)'
+    },
+    Ppp: {
+      cols:['p','p'], rows:['P','p'],
+      cells:[['Pp','Pp'],['pp','pp']],
+      ratioText:'1 púrpura : 1 blanca (cruza de prueba)'
+    }
+  };
+  function paintGenotype(g){
+    return g.includes('p') && !g.includes('P') ? 'white' : 'purple';
+  }
+  function renderPunnett(key){
+    const c = crosses[key];
+    const table = document.getElementById('punnettTable');
+    let html = '<tr><th></th>';
+    c.cols.forEach(col => html += `<th>${col}</th>`);
+    html += '</tr>';
+    c.rows.forEach((row,i) => {
+      html += `<tr><th>${row}</th>`;
+      c.cells[i].forEach(cell => {
+        const cls = paintGenotype(cell) === 'purple' ? 'g-purple' : 'g-white';
+        html += `<td class="${cls}">${cell}</td>`;
+      });
+      html += '</tr>';
+    });
+    table.innerHTML = html;
+    document.getElementById('punnettRatio').innerHTML = `Proporción esperada: <b>${c.ratioText}</b>`;
+  }
+  document.querySelectorAll('.cross-buttons button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.cross-buttons button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderPunnett(btn.dataset.cross);
+    });
+  });
+  renderPunnett('PpPp');
+
+  // --- Moth evolution simulation ---
+  const mothGens = [
+    { light:98, dark:2, label:'Generación 0 · antes de la industrialización', caption:'Los troncos de los árboles están cubiertos de líquenes claros: las polillas claras se camuflan mejor y los pájaros depredan sobre todo a las oscuras.' },
+    { light:70, dark:30, label:'Generación 1 · comienza la contaminación', caption:'El hollín empieza a oscurecer la corteza de los árboles. Las polillas oscuras empiezan a camuflarse mejor que antes.' },
+    { light:35, dark:65, label:'Generación 2 · zona muy industrializada', caption:'Con troncos ennegrecidos, ahora son las polillas claras las más visibles para los depredadores.' },
+    { light:10, dark:90, label:'Generación 3 · pico de contaminación', caption:'La población está dominada por el alelo oscuro: fue favorecido generación tras generación por la selección natural.' },
+    { light:55, dark:45, label:'Generación 4 · controles ambientales, aire más limpio', caption:'Al reducirse la contaminación y aclararse los troncos otra vez, la ventaja regresa parcialmente hacia las polillas claras.' },
+  ];
+  let mothIndex = 0;
+  const mothLight = document.getElementById('mothLight');
+  const mothDark = document.getElementById('mothDark');
+  const mothGenLabel = document.getElementById('mothGenLabel');
+  const mothCaption = document.getElementById('mothCaption');
+  const mothBtn = document.getElementById('mothBtn');
+  function renderMoth(i){
+    const g = mothGens[i];
+    mothLight.style.width = g.light + '%';
+    mothDark.style.width = g.dark + '%';
+    mothGenLabel.textContent = g.label;
+    mothCaption.textContent = g.caption;
+    mothBtn.disabled = i >= mothGens.length - 1;
+  }
+  mothBtn.addEventListener('click', ()=>{
+    if(mothIndex < mothGens.length - 1){ mothIndex++; renderMoth(mothIndex); }
+  });
+  renderMoth(0);
+</script>
+</body>
+</html>
